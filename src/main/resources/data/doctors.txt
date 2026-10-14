@@ -1,0 +1,5 @@
+9090234b,Chamindu,0776677497,Surgeon,Monday - Friday,123456,Approved
+8d17794d,Perera,0776035387,Cardiologist,Monday - Friday,perera123,Approved
+6ac397ea,Ajith,0725284334,Dermatologist,Monday - Friday,ajith123,Approved
+57eb6925,Namal,0724537654,Neurologist,Monday - Friday,namal123,Approved
+95c688d9,Kamal de Silva,0717862345,Surgeon,Monday - Friday,kamal123,Approved
