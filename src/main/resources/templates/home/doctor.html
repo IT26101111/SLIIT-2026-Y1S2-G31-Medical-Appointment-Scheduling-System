@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Portal — DocTime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/style.css}"/>
+  <style>
+    :root {
+      --accent:      #22c55e;
+      --accent-glow: rgba(34,197,94,0.28);
+      --accent-soft: rgba(34,197,94,0.10);
+    }
+
+    /* Navbar green tint */
+    .navbar {
+      background: rgba(6, 10, 18, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .navbar .logo {
+      color: #22c55e;
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+    }
+
+    .navbar .logo .logo-emoji {
+      font-size: 22px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 8px rgba(34,197,94,0.4));
+    }
+
+    .navbar nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .navbar nav a {
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .navbar nav a .nav-emoji {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .navbar nav a:hover {
+      color: #f1f5f9;
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-1px);
+    }
+
+    .navbar nav a.active {
+      color: #22c55e;
+      background: rgba(34,197,94,0.12);
+      font-weight: 600;
+      border: 1px solid rgba(34,197,94,0.25);
+    }
+
+    .navbar nav a.logout-btn {
+      color: #f87171;
+      background: rgba(239,68,68,0.10);
+      margin-left: 6px;
+    }
+
+    body {
+      background:
+        linear-gradient(180deg, rgba(6, 10, 18, 0.68) 0%, rgba(6, 10, 18, 0.78) 100%),
+        url('https://images.unsplash.com/photo-1606206873764-fd15e242df52?q=80&w=1400&auto=format&fit=crop') center/cover fixed no-repeat !important;
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    /* ── Hero strip ── */
+    .hero-strip {
+      background: linear-gradient(130deg, #06140a 0%, #0a2012 45%, #0b0f1a 100%);
+      border: 1px solid rgba(34,197,94,0.22);
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    }
+
+    .hero-strip::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(34,197,94,0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-left h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #f8fafc;
+      line-height: 1.2;
+    }
+
+    .hero-left h1 em { font-style: normal; color: #22c55e; }
+    .hero-left p { color: #cbd5e1; font-size: 13.5px; margin-top: 5px; font-weight: 500; }
+
+    .role-chip {
+      background: rgba(34,197,94,0.14);
+      border: 1px solid rgba(34,197,94,0.35);
+      color: #4ade80;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 12.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(34,197,94,0.18);
+    }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .stat-box {
+      background: #ffffff !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      border-radius: 14px;
+      padding: 18px 22px;
+      transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: default;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    }
+
+    .stat-box:hover {
+      border-color: rgba(34,197,94,0.50) !important;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+    }
+
+    .stat-box-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .stat-box-icon.green  { background: rgba(34,197,94,0.14);  border: 1px solid rgba(34,197,94,0.28); }
+    .stat-box-icon.blue   { background: rgba(14,165,233,0.14); border: 1px solid rgba(14,165,233,0.28); }
+    .stat-box-icon.orange { background: rgba(249,115,22,0.14); border: 1px solid rgba(249,115,22,0.28); }
+
+    .stat-box-info h3 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #0f172a !important;
+      line-height: 1;
+    }
+
+    .stat-box-info p {
+      font-size: 11.5px;
+      color: #475569 !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    /* ── Quick actions ── */
+    .section-label {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    /* Action card styling */
+    .action-card {
+      background: #ffffff !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      border-radius: 16px;
+      padding: 26px 22px;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    }
+
+    .action-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(34,197,94,0.55) !important;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.28), 0 0 0 1px rgba(34,197,94,0.25);
+    }
+
+    .action-card:active {
+      transform: translateY(-2px) scale(0.99);
+    }
+
+    .action-card .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.22);
+      font-size: 26px;
+      line-height: 1;
+      transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .action-card:hover .card-icon {
+      transform: scale(1.12);
+      background: rgba(34,197,94,0.20);
+      border-color: rgba(34,197,94,0.38);
+    }
+
+    .action-card h3 {
+      font-size: 15px;
+      color: #0f172a !important;
+      font-weight: 700;
+      margin-bottom: 5px;
+      letter-spacing: -0.02em;
+    }
+
+    .action-card p {
+      color: #475569 !important;
+      font-size: 12.5px;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    /* ── Appointments table card ── */
+    .appt-card {
+      background: #ffffff !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    }
+
+    .appt-card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+    }
+
+    .appt-card-header h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a !important;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      letter-spacing: -0.02em;
+    }
+
+    .appt-card table th {
+      background: #f8fafc !important;
+      color: #0f172a !important;
+      font-weight: 700 !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .appt-card table td {
+      color: #1e293b !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    .appt-card table tr:hover td {
+      background: #f8fafc !important;
+    }
+
+    .appt-card-header h3 .header-emoji {
+      font-size: 16px;
+    }
+
+    .empty-state-emoji {
+      font-size: 38px;
+      margin-bottom: 10px;
+      display: inline-block;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 860px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .quick-grid { grid-template-columns: 1fr; }
+    }
+  
+    /* Full width enforcement */
+    html, body {
+      width: 100% !important;
+      min-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .main-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 1 1 100% !important;
+      box-sizing: border-box !important;
+    }
+    .hero-strip, .stats-row, .dash-grid, .quick-grid, .appt-card {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<div class="navbar">
+  <a class="logo" href="/home/doctor">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:26px; height:26px; color:#22c55e; flex-shrink:0;">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span>DocTime <span style="font-size:11px; color:#94a3b8; font-weight:500; margin-left:4px;">Doctor Portal</span></span>
+  </a>
+  <nav>
+    <a href="/home/doctor" class="active home-link">
+      <span class="nav-emoji">🏠</span> Home
+    </a>
+    <a href="/scheduling">
+      <span class="nav-emoji">⏱️</span> My Schedule
+    </a>
+    <a href="/appointments">
+      <span class="nav-emoji">📅</span> Appointments
+    </a>
+    <a href="/logout" class="logout-btn">
+      <span class="nav-emoji">🚪</span> Logout
+    </a>
+  </nav>
+  
+</div>
+
+
+
+<!-- ══ MAIN ══ -->
+<div class="main-content">
+
+  <!-- Hero strip -->
+  <div class="hero-strip">
+    <div class="hero-left">
+      <h1>Good day, <em>Dr. <span th:text="${userName}"></span></em></h1>
+      <p>Manage your availability, monitor appointments, and care for your patients</p>
+    </div>
+    <div class="role-chip">
+      <span>🩺</span> Medical Doctor
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-box-icon green">📅</div>
+      <div class="stat-box-info">
+        <h3 th:text="${#lists.size(myAppointments)}">0</h3>
+        <p>My Appointments</p>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-icon blue">👥</div>
+      <div class="stat-box-info">
+        <h3 th:text="${#lists.size(myAppointments)}">0</h3>
+        <p>Active Patients</p>
+      </div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-icon orange">⏱️</div>
+      <div class="stat-box-info">
+        <h3>Today</h3>
+        <p>Schedule Status</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="section-label">Quick Actions</div>
+  <div class="quick-grid">
+    <a href="/scheduling/add" class="action-card stagger-1">
+      <div class="card-icon">➕</div>
+      <h3>Add Schedule</h3>
+      <p>Set your daily availability and consultation hours</p>
+    </a>
+    <a href="/scheduling" class="action-card stagger-2">
+      <div class="card-icon">⏱️</div>
+      <h3>My Schedule</h3>
+      <p>View your time-sorted daily patient timetable</p>
+    </a>
+  </div>
+
+  <!-- Appointments table -->
+  <div class="section-label">Today's Appointments</div>
+  <div class="appt-card">
+    <div class="appt-card-header">
+      <h3>
+        <span class="header-emoji">📅</span>
+        My Appointments
+      </h3>
+      <span class="badge badge-green" th:text="${#lists.size(myAppointments)} + ' total'"></span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Date</th>
+          <th>Time Slot</th>
+          <th>Status</th>
+          <th>Urgency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="a : ${myAppointments}">
+          <td style="font-weight:600; color:#f1f5f9;" th:text="${a.patientName}"></td>
+          <td th:text="${a.date}"></td>
+          <td>
+            <span class="badge badge-blue" th:text="${a.timeSlot}"></span>
+          </td>
+          <td>
+            <span class="badge"
+                  th:classappend="${a.status == 'Confirmed'} ? 'badge-green' : (${a.status == 'Pending'} ? 'badge-orange' : 'badge-red')"
+                  th:text="${a.status}">
+            </span>
+          </td>
+          <td>
+            <span class="badge"
+                  th:classappend="${a.urgency == 1} ? 'badge-red' : (${a.urgency == 2} ? 'badge-orange' : 'badge-green')"
+                  th:text="${a.urgency == 1} ? 'High' : (${a.urgency == 2} ? 'Medium' : 'Low')">
+            </span>
+          </td>
+        </tr>
+
+        <!-- Empty state -->
+        <tr th:if="${#lists.isEmpty(myAppointments)}">
+          <td colspan="5">
+            <div class="empty-state">
+              <span class="empty-state-emoji">📭</span>
+              <h3>No appointments yet</h3>
+              <p>Appointments booked with you will appear here</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+
+function animateCount(el,target){var step=Math.max(1,Math.ceil(target/36));var cur=0;el.textContent='0';var t=setInterval(function(){cur=Math.min(cur+step,target);el.textContent=cur;if(cur>=target)clearInterval(t);},16);}
+document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.stat-box h3,.stat-box-info h3,.stat-cell h3,.stat-mini h3,.white-stat-box h3').forEach(function(el){var n=parseInt(el.textContent.replace(/[^0-9]/g,''),10);if(!isNaN(n)&&n>0)animateCount(el,n);});});
+</script>
+</body>
+</html>

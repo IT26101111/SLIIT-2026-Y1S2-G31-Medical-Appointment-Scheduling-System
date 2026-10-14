@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <title>Add Schedule</title>
+    <link rel="stylesheet" th:href="@{/style.css}"/>
+    <style>
+      body {
+        background:
+          linear-gradient(180deg, rgba(6, 10, 18, 0.64) 0%, rgba(6, 10, 18, 0.75) 100%),
+          url('https://images.unsplash.com/photo-1606206873764-fd15e242df52?q=80&w=1400&auto=format&fit=crop') center/cover fixed no-repeat !important;
+        min-height: 100vh;
+      }
+    </style>
+</head>
+<body>
+<div class="navbar">
+  <a class="logo" th:href="${session.userRole == 'DOCTOR' ? '/home/doctor' : '/home/admin'}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" th:style="${session.userRole == 'DOCTOR' ? 'width:24px;height:24px;color:#22c55e;flex-shrink:0;' : 'width:24px;height:24px;color:#ef4444;flex-shrink:0;'}">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span>DocTime <span style="font-size:11px; color:#94a3b8; font-weight:500; margin-left:4px;" th:text="${session.userRole == 'DOCTOR' ? 'Doctor Portal' : 'Admin Portal'}"></span></span>
+  </a>
+  <nav>
+    <a href="/home/admin">
+      <span>🏠</span> Home
+    </a>
+    <a href="/patients">
+      <span>👥</span> Patients
+    </a>
+    <a href="/doctors">
+      <span>🩺</span> Doctors
+    </a>
+    <a href="/appointments">
+      <span>📅</span> Appointments
+    </a>
+    <a href="/scheduling">
+      <span>⏱️</span> Scheduling
+    </a>
+    <a href="/admin">
+      <span>⚙️</span> Admin
+    </a>
+    <a href="/admin/requests">
+      <span>🔔</span> Requests
+    </a>
+    <a href="/logout" class="logout-btn">
+      <span>🚪</span> Logout
+    </a>
+  </nav>
+</div>
+
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <h1>Add Schedule</h1>
+            <p th:if="${session.userRole == 'DOCTOR'}">
+                Set your availability for patients
+            </p>
+            <p th:if="${session.userRole == 'ADMIN'}">
+                Set up a doctor's availability
+            </p>
+        </div>
+        <a href="/scheduling" class="btn btn-primary">← Back to List</a>
+    </div>
+
+    <div class="card" style="max-width: 600px;">
+        <form th:action="@{/scheduling/add}" th:object="${schedule}" method="post">
+
+            <div class="form-group">
+                <label>Doctor Name</label>
+                <!-- Show dropdown for Admin -->
+                <select th:if="${session.userRole == 'ADMIN'}"
+                        th:field="*{doctorName}" required>
+                    <option value="">-- Select Doctor --</option>
+                    <option th:each="d : ${doctors}"
+                            th:value="${d.name}"
+                            th:text="${d.name} + ' - ' + ${d.specialization}">
+                    </option>
+                </select>
+                <!-- Show readonly for Doctor -->
+                <input th:if="${session.userRole == 'DOCTOR'}"
+                       type="text" th:field="*{doctorName}"
+                       readonly
+                       style="background:#f5f5f5;"
+                       required/>
+                <small th:if="${session.userRole == 'DOCTOR'}"
+                       style="color:#64748b; font-size:12px;">
+                    * Auto-filled with your name
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Available Days</label>
+                <select th:field="*{availableDays}">
+                    <option value="Weekdays (Mon - Fri)">Weekdays (Mon - Fri)</option>
+                    <option value="Weekends (Sat - Sun)">Weekends (Sat - Sun)</option>
+                    <option value="Both (Mon - Sun)">Both (Mon - Sun)</option>
+                    <option value="Monday Only">Monday Only</option>
+                    <option value="Tuesday Only">Tuesday Only</option>
+                    <option value="Wednesday Only">Wednesday Only</option>
+                    <option value="Thursday Only">Thursday Only</option>
+                    <option value="Friday Only">Friday Only</option>
+                    <option value="Saturday Only">Saturday Only</option>
+                    <option value="Sunday Only">Sunday Only</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Start Time</label>
+                <select th:field="*{startTime}">
+                    <option value="06:00 AM">06:00 AM</option>
+                    <option value="07:00 AM">07:00 AM</option>
+                    <option value="08:00 AM">08:00 AM</option>
+                    <option value="09:00 AM">09:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="01:00 PM">01:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="03:00 PM">03:00 PM</option>
+                    <option value="04:00 PM">04:00 PM</option>
+                    <option value="05:00 PM">05:00 PM</option>
+                    <option value="06:00 PM">06:00 PM</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>End Time</label>
+                <select th:field="*{endTime}">
+                    <option value="07:00 AM">07:00 AM</option>
+                    <option value="08:00 AM">08:00 AM</option>
+                    <option value="09:00 AM">09:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="01:00 PM">01:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="03:00 PM">03:00 PM</option>
+                    <option value="04:00 PM">04:00 PM</option>
+                    <option value="05:00 PM">05:00 PM</option>
+                    <option value="06:00 PM">06:00 PM</option>
+                    <option value="07:00 PM">07:00 PM</option>
+                    <option value="08:00 PM">08:00 PM</option>
+                    <option value="09:00 PM">09:00 PM</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Room Number</label>
+                <input type="text" th:field="*{roomNumber}"
+                       placeholder="e.g. Room 3" required/>
+            </div>
+
+            <div class="form-group">
+                <label>Appointment Slot Duration</label>
+                <select th:field="*{slotDuration}">
+                    <option value="15">15 minutes per patient</option>
+                    <option value="30">30 minutes per patient</option>
+                    <option value="45">45 minutes per patient</option>
+                    <option value="60">60 minutes per patient</option>
+                </select>
+                <small style="color:#64748b; font-size:12px; margin-top:4px; display:block;">
+                    ⏰ Max patients will be calculated automatically
+                </small>
+            </div>
+
+            <!-- Auto calculated info box -->
+            <div style="background:#e3f2fd; border-radius:10px;
+                        padding:15px; margin-bottom:20px;">
+                <p style="font-size:13px; color:#1565c0; font-weight:600;
+                          margin-bottom:5px;">
+                    📊 Auto Calculated:
+                </p>
+                <p style="font-size:12px; color:#555;">
+                    The system will automatically calculate the maximum number
+                    of patients based on your start time, end time and slot duration.
+                </p>
+                <p style="font-size:12px; color:#555; margin-top:5px;">
+                    Example: 6AM - 9AM with 30 min slots = <strong>6 patients max</strong>
+                </p>
+            </div>
+
+            <button type="submit" class="btn btn-success">Add Schedule</button>
+            <a href="/scheduling" class="btn btn-danger"
+               style="margin-left:10px;">Cancel</a>
+        </form>
+    </div>
+</div>
+</body>
+</html>

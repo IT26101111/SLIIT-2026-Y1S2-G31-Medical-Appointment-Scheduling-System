@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <title>Scheduling Management</title>
+    <link rel="stylesheet" th:href="@{/style.css}"/>
+    <style>
+      body.role-admin {
+        background:
+          linear-gradient(180deg, rgba(6, 10, 18, 0.68) 0%, rgba(6, 10, 18, 0.78) 100%),
+          url('https://images.unsplash.com/photo-1758092922270-05163495a197?q=80&w=1400&auto=format&fit=crop') center/cover fixed no-repeat !important;
+        min-height: 100vh;
+      }
+      body.role-doctor {
+        background:
+          linear-gradient(180deg, rgba(6, 10, 18, 0.64) 0%, rgba(6, 10, 18, 0.75) 100%),
+          url('https://images.unsplash.com/photo-1606206873764-fd15e242df52?q=80&w=1400&auto=format&fit=crop') center/cover fixed no-repeat !important;
+        min-height: 100vh;
+      }
+
+      /* White cards with inverted dark text */
+      .white-stat-box {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+        text-align: center;
+        flex: 1;
+      }
+      .white-stat-box h3 {
+        font-size: 24px;
+        font-weight: 800;
+      }
+      .white-stat-box p {
+        color: #475569 !important;
+        font-size: 12px;
+        margin-top: 4px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .white-table-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.18) !important;
+        overflow: hidden;
+      }
+      .white-table-card table th {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+      }
+      .white-table-card table td {
+        color: #1e293b !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+      }
+      .white-table-card table tr:hover td {
+        background: #f8fafc !important;
+      }
+    </style>
+</head>
+<body th:classappend="${session.userRole == 'DOCTOR' ? 'role-doctor' : 'role-admin'}">
+<div class="navbar">
+  <a class="logo" th:href="${session.userRole == 'DOCTOR' ? '/home/doctor' : '/home/admin'}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" th:style="${session.userRole == 'DOCTOR' ? 'width:24px;height:24px;color:#22c55e;flex-shrink:0;' : 'width:24px;height:24px;color:#ef4444;flex-shrink:0;'}">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span>DocTime <span style="font-size:11px; color:#94a3b8; font-weight:500; margin-left:4px;" th:text="${session.userRole == 'DOCTOR' ? 'Doctor Portal' : 'Admin Portal'}"></span></span>
+  </a>
+  <nav>
+    <a th:href="${session.userRole == 'DOCTOR' ? '/home/doctor' : '/home/admin'}" class="home-link">
+      <span>🏠</span> Home
+    </a>
+    <a href="/patients" th:if="${session.userRole == 'ADMIN'}">
+      <span>👥</span> Patients
+    </a>
+    <a href="/doctors" th:if="${session.userRole == 'ADMIN'}">
+      <span>🩺</span> Doctors
+    </a>
+    <a href="/appointments" th:if="${session.userRole == 'ADMIN'}">
+      <span>📅</span> Appointments
+    </a>
+    <a href="/scheduling" class="active">
+      <span>⏱️</span> Scheduling
+    </a>
+    <a href="/admin" th:if="${session.userRole == 'ADMIN'}">
+      <span>⚙️</span> Admin
+    </a>
+    <a href="/admin/requests" th:if="${session.userRole == 'ADMIN'}">
+      <span>🔔</span> Requests
+    </a>
+    <a href="/logout" class="logout-btn">
+      <span>🚪</span> Logout
+    </a>
+  </nav>
+</div>
+
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 th:if="${session.userRole == 'ADMIN'}" style="color:#ffffff !important;">🗓️ Scheduling Management</h1>
+            <h1 th:if="${session.userRole == 'DOCTOR'}" style="color:#ffffff !important;">🗓️ My Availability Schedule</h1>
+            <p th:if="${session.userRole == 'ADMIN'}">
+                View and manage all doctor schedules
+            </p>
+            <p th:if="${session.userRole == 'DOCTOR'}">
+                Set your availability for patients
+            </p>
+        </div>
+        <a href="/scheduling/add" class="btn btn-primary">+ Add Schedule</a>
+    </div>
+
+    <!-- STATS BAR -->
+    <div style="display:flex; gap:20px; margin-bottom:25px;">
+        <div class="white-stat-box">
+            <h3 style="color:#0284c7 !important;"
+                th:text="${#lists.size(schedules)}">0</h3>
+            <p>Total Schedules</p>
+        </div>
+        <div class="white-stat-box">
+            <h3 style="color:#16a34a !important;"
+                th:text="${schedules.?[status == 'Available'].size()}">0</h3>
+            <p>Available</p>
+        </div>
+        <div class="white-stat-box">
+            <h3 style="color:#dc2626 !important;"
+                th:text="${schedules.?[status == 'Full'].size()}">0</h3>
+            <p>Full</p>
+        </div>
+        <div class="white-stat-box">
+            <h3 style="color:#ea580c !important;"
+                th:text="${totalBookedToday}">0</h3>
+            <p>Booked Today</p>
+        </div>
+    </div>
+
+    <!-- Today's date info -->
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-left:5px solid #0284c7;
+                border-radius:10px; padding:12px 20px; margin-bottom:20px;
+                display:flex; align-items:center; gap:10px; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+        <span style="font-size:20px;">📅</span>
+        <p style="color:#0f172a; font-size:13px;">
+            <strong style="color:#0284c7;">Today:</strong>
+            <span th:text="${today}" style="font-weight:600;"></span> —
+            <span style="color:#475569;">Booked count shows appointments for today only</span>
+        </p>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div style="display:flex; gap:10px; margin-bottom:20px; align-items:center;">
+        <input type="text" id="searchInput"
+               placeholder="🔍 Search by doctor name..."
+               onkeyup="filterSchedules()"
+               style="padding:10px 15px; border:1.5px solid #cbd5e1; background:#ffffff; color:#0f172a;
+                      border-radius:8px; font-size:14px; outline:none;
+                      width:300px; transition:border 0.3s ease; box-shadow:0 2px 8px rgba(0,0,0,0.06);"
+               onfocus="this.style.borderColor='#38bdf8'"
+               onblur="this.style.borderColor='#cbd5e1'"/>
+        <select id="statusFilter" onchange="filterSchedules()"
+                style="padding:10px 15px; border:1.5px solid #cbd5e1; background:#ffffff; color:#0f172a;
+                       border-radius:8px; font-size:14px; outline:none;
+                       transition:border 0.3s ease; box-shadow:0 2px 8px rgba(0,0,0,0.06);"
+                onfocus="this.style.borderColor='#38bdf8'"
+                onblur="this.style.borderColor='#cbd5e1'">
+            <option value="">All Status</option>
+            <option value="Available">✅ Available</option>
+            <option value="Full">🔴 Full</option>
+        </select>
+    </div>
+
+    <div class="card white-table-card">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Doctor</th>
+                <th>Available Days</th>
+                <th>Time Period</th>
+                <th>Room</th>
+                <th>Slot Duration</th>
+                <th>Max/Day</th>
+                <th>Booked Today</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${schedules}"
+                class="schedule-row"
+                th:attr="data-name=${s.doctorName},
+                             data-status=${s.status}">
+                <td>
+                        <span class="badge badge-blue"
+                              th:text="${s.id}"></span>
+                </td>
+                <td th:text="${s.doctorName}"></td>
+                <td>
+                        <span class="badge badge-orange"
+                              th:text="${s.availableDays}"></span>
+                </td>
+                <td th:text="${s.startTime} + ' - ' + ${s.endTime}"></td>
+                <td th:text="${s.roomNumber}"></td>
+                <td>
+                        <span class="badge badge-blue"
+                              th:text="${s.slotDuration} + ' min'"></span>
+                </td>
+                <td th:text="${s.maxPatients}"></td>
+                <td>
+                    <th:block th:with="booked=${bookedToday[s.doctorName] != null ?
+                                          bookedToday[s.doctorName] : 0}">
+                            <span th:text="${booked} + '/' + ${s.maxPatients}"
+                                  th:style="${booked >= s.maxPatients} ?
+                                            'color:var(--admin-primary, #ef4444); font-weight:700;' :
+                                            'color:var(--doctor-primary, #22c55e); font-weight:700;'">
+                            </span>
+                        <!-- Progress bar -->
+                        <div style="background:#f0f0f0; border-radius:10px;
+                                        height:6px; margin-top:5px; width:80px;">
+                            <div th:style="'width:' +
+                                              (${s.maxPatients} > 0 ?
+                                              (${booked} * 100 / ${s.maxPatients}) : 0) +
+                                              '%; background:' +
+                                              (${booked} >= ${s.maxPatients} ?
+                                              '#c62828' : '#1976d2') +
+                                              '; border-radius:10px; height:6px;'">
+                            </div>
+                        </div>
+                    </th:block>
+                </td>
+                <td>
+                        <span class="badge"
+                              th:classappend="${s.status == 'Available'} ?
+                                            'badge-green' : 'badge-red'"
+                              th:text="${s.status}"></span>
+                </td>
+                <td>
+                    <a th:href="@{/scheduling/edit/{id}(id=${s.id})}"
+                       class="btn btn-warning"
+                       style="padding:6px 14px; font-size:12px;">
+                        Edit
+                    </a>
+                    <a th:href="@{/scheduling/delete/{id}(id=${s.id})}"
+                       class="btn btn-danger"
+                       style="padding:6px 14px; font-size:12px;"
+                       onclick="return confirm('Are you sure?')">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(schedules)}">
+                <td colspan="10"
+                    style="text-align:center; color:#64748b; padding:30px;">
+                    <div style="font-size:40px; margin-bottom:10px;">📭</div>
+                    <span th:if="${session.userRole == 'DOCTOR'}">
+                            You haven't added your schedule yet!
+                        </span>
+                    <span th:if="${session.userRole == 'ADMIN'}">
+                            No schedules found.
+                        </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function filterSchedules() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('.schedule-row');
+
+        rows.forEach(row => {
+            const name = row.getAttribute('data-name').toLowerCase();
+            const rowStatus = row.getAttribute('data-status');
+
+            const matchName = name.includes(search);
+            const matchStatus = status === '' || rowStatus === status;
+
+            row.style.display = (matchName && matchStatus) ? '' : 'none';
+        });
+    }
+</script>
+
+
+<script>
+
+function animateCount(el,target){var step=Math.max(1,Math.ceil(target/36));var cur=0;el.textContent='0';var t=setInterval(function(){cur=Math.min(cur+step,target);el.textContent=cur;if(cur>=target)clearInterval(t);},16);}
+document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.stat-box h3,.stat-box-info h3,.stat-cell h3,.stat-mini h3,.white-stat-box h3').forEach(function(el){var n=parseInt(el.textContent.replace(/[^0-9]/g,''),10);if(!isNaN(n)&&n>0)animateCount(el,n);});});
+</script>
+</body>
+</html>

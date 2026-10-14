@@ -1,0 +1,66 @@
+package com.healthcare.healthcaremanagement.patient;
+
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * Function 1: Patient Registration &amp; Profile Management
+ * @author Randeniya S.M. (IT26101173) - Collaborator
+ */
+@Controller
+@RequestMapping("/patients") // Base URL for all patient-related pages
+public class PatientController {
+
+    @Autowired // Auto-links the service class so we don't have to instantiate it manually
+    private PatientService patientService;
+
+    @GetMapping
+    public String listPatients(HttpSession session, Model model) {
+        // Basic security check - kicking non-admins back to the login page
+        if (!"ADMIN".equals(session.getAttribute("userRole"))) return "redirect:/login";
+        model.addAttribute("patients", patientService.getAllPatients());
+        return "patient/list";
+    }
+
+    @GetMapping("/add")
+    public String showAddForm(HttpSession session, Model model) {
+        // Need to make sure only admins can add patients too
+        if (!"ADMIN".equals(session.getAttribute("userRole"))) return "redirect:/login";
+        // Passing an empty object for the form to use
+        model.addAttribute("patient", new Patient());
+        return "patient/add";
+    }
+
+    @PostMapping("/add")
+    public String addPatient(HttpSession session, @ModelAttribute Patient patient) {
+        if (!"ADMIN".equals(session.getAttribute("userRole"))) return "redirect:/login";
+        patientService.savePatient(patient);
+        return "redirect:/patients";// Redirects to the main list after saving
+    }
+
+    @GetMapping("/edit/{id}")
+    public String showEditForm(HttpSession session, @PathVariable String id, Model model) {
+        if (!"ADMIN".equals(session.getAttribute("userRole"))) return "redirect:/login";
+        // Grabbing the specific patient by the ID passed in the URL
+        model.addAttribute("patient", patientService.getPatientById(id));
+        return "patient/edit";
+    }
+
+    @PostMapping("/edit/{id}")
+    public String editPatient(HttpSession session, @PathVariable String id, @ModelAttribute Patient patient) {
+        if (!"ADMIN".equals(session.getAttribute("userRole"))) return "redirect:/login";
+        patientService.updatePatient(id, patient);
+        return "redirect:/patients";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deletePatient(HttpSession session, @PathVariable String id) {
+        // Delete request based on the ID path variable
+        if (!"ADMIN".equals(session.getAttribute("userRole"))) return "redirect:/login";
+        patientService.deletePatient(id);
+        return "redirect:/patients";
+    }
+}

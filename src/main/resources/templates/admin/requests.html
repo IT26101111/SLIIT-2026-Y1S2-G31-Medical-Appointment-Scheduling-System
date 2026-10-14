@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pending Requests — DocTime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/style.css}"/>
+  <style>
+    :root {
+      --accent:       #ef4444;
+      --accent-glow:  rgba(239, 68, 68, 0.28);
+      --accent-soft:  rgba(239, 68, 68, 0.10);
+    }
+
+    .navbar {
+      background: rgba(6, 10, 18, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .navbar .logo {
+      color: #ef4444;
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+    }
+
+    .navbar .logo .logo-emoji {
+      font-size: 22px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 8px rgba(239,68,68,0.4));
+    }
+
+    .navbar nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .navbar nav a {
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .navbar nav a .nav-emoji {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .navbar nav a:hover {
+      color: #f1f5f9;
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-1px);
+    }
+
+    .navbar nav a.active {
+      color: #ef4444;
+      background: rgba(239,68,68,0.12);
+      font-weight: 600;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+
+    body {
+      background:
+        linear-gradient(180deg, rgba(6, 10, 18, 0.88) 0%, rgba(6, 10, 18, 0.94) 100%),
+        url('https://images.unsplash.com/photo-1758092922270-05163495a197?q=80&w=1400&auto=format&fit=crop') center/cover fixed no-repeat !important;
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    .navbar nav a.logout-btn {
+      color: #f87171;
+      background: rgba(239,68,68,0.10);
+      margin-left: 6px;
+    }
+
+    .navbar nav a.logout-btn:hover {
+      background: rgba(239,68,68,0.22);
+      color: #fca5a5;
+    }
+
+    .request-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+      transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+      animation: pageEnter 0.35s ease both;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .request-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    .request-card.doctor {
+      border-left: 4px solid #22c55e;
+    }
+
+    .request-card.patient {
+      border-left: 4px solid #38bdf8;
+    }
+
+    .request-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .request-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .request-icon.doctor {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+
+    .request-icon.patient {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .request-details h4 {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12.5px;
+      color: #94a3b8;
+      align-items: center;
+    }
+
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .meta-tag .meta-emoji {
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .request-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      margin-top: 30px;
+    }
+
+    .section-header h2 {
+      font-size: 17px;
+      color: #f8fafc;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .section-header .section-emoji {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .count-badge {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .empty-card {
+      text-align: center;
+      padding: 36px 20px;
+      background: var(--bg-card);
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      color: #64748b;
+      font-size: 13.5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .empty-card .empty-emoji {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <a class="logo" href="/home/admin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:26px; height:26px; color:#ef4444; flex-shrink:0;">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span>DocTime <span style="font-size:11px; color:#94a3b8; font-weight:500; margin-left:4px;">Admin Portal</span></span>
+  </a>
+  <nav>
+    <a href="/home/admin" class="home-link">
+      <span class="nav-emoji">🏠</span> Home
+    </a>
+    <a href="/patients">
+      <span class="nav-emoji">👥</span> Patients
+    </a>
+    <a href="/doctors">
+      <span class="nav-emoji">🩺</span> Doctors
+    </a>
+    <a href="/appointments">
+      <span class="nav-emoji">📅</span> Appointments
+    </a>
+    <a href="/scheduling">
+      <span class="nav-emoji">⏱️</span> Scheduling
+    </a>
+    <a href="/admin">
+      <span class="nav-emoji">⚙️</span> Admin
+    </a>
+    <a href="/admin/requests" class="active">
+      <span class="nav-emoji">🔔</span> Requests
+      <span class="nav-badge" th:if="${pendingCount > 0}" th:text="${pendingCount}"></span>
+    </a>
+    <a href="/logout" class="logout-btn">
+      <span class="nav-emoji">🚪</span> Logout
+    </a>
+  </nav>
+  
+</div>
+
+
+
+<div class="main-content">
+  <div class="page-header">
+    <div>
+      <h1 style="color:#ffffff !important;">Registration Requests</h1>
+      <p>Review and verify doctor and patient signup applications</p>
+    </div>
+  </div>
+
+
+  <!-- PENDING DOCTORS -->
+  <div class="section-header">
+    <span class="section-emoji">🩺</span>
+    <h2>Pending Doctors</h2>
+    <span class="count-badge" th:text="${#lists.size(pendingDoctors)} + ' pending'"></span>
+  </div>
+
+  <div th:if="${#lists.isEmpty(pendingDoctors)}" class="empty-card">
+    <span class="empty-emoji">✅</span>
+    <span>All doctor applications processed!</span>
+  </div>
+
+  <div th:each="doctor : ${pendingDoctors}" class="request-card doctor">
+    <div class="request-info">
+      <div class="request-icon doctor">🩺</div>
+      <div class="request-details">
+        <h4 th:text="${doctor.name}"></h4>
+        <div class="meta-tags">
+          <span class="meta-tag">
+            <span class="meta-emoji">📱</span>
+            <span th:text="${doctor.phone}"></span>
+          </span>
+          <span class="meta-tag">
+            <span class="meta-emoji">🔬</span>
+            <span th:text="${doctor.specialization}"></span>
+          </span>
+          <span class="meta-tag">
+            <span class="meta-emoji">⏱️</span>
+            <span th:text="${doctor.availability}"></span>
+          </span>
+          <span class="meta-tag">
+            <span class="badge badge-gray" th:text="'ID: ' + ${doctor.id}"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="request-actions">
+      <a th:href="@{/admin/approve/doctor/{id}(id=${doctor.id})}" class="btn btn-success" style="padding:7px 16px; font-size:12.5px;">
+        ✅ Approve
+      </a>
+      <a th:href="@{/admin/reject/doctor/{id}(id=${doctor.id})}" class="btn btn-danger" style="padding:7px 16px; font-size:12.5px;">
+        ❌ Reject
+      </a>
+    </div>
+  </div>
+
+  <!-- PENDING PATIENTS -->
+  <div class="section-header">
+    <span class="section-emoji">👤</span>
+    <h2>Pending Patients</h2>
+    <span class="count-badge" th:text="${#lists.size(pendingPatients)} + ' pending'"></span>
+  </div>
+
+  <div th:if="${#lists.isEmpty(pendingPatients)}" class="empty-card">
+    <span class="empty-emoji">✅</span>
+    <span>All patient applications processed!</span>
+  </div>
+
+  <div th:each="patient : ${pendingPatients}" class="request-card patient">
+    <div class="request-info">
+      <div class="request-icon patient">👤</div>
+      <div class="request-details">
+        <h4 th:text="${patient.name}"></h4>
+        <div class="meta-tags">
+          <span class="meta-tag">
+            <span class="meta-emoji">📱</span>
+            <span th:text="${patient.phone}"></span>
+          </span>
+          <span class="meta-tag">
+            <span>🎂 Age: <strong style="color:#f1f5f9;" th:text="${patient.age}"></strong></span>
+          </span>
+          <span class="meta-tag">
+            <span th:text="${patient.gender == 'Male' ? '👨 Male' : '👩 Female'}"></span>
+          </span>
+          <span class="meta-tag">
+            <span class="badge badge-gray" th:text="'ID: ' + ${patient.id}"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="request-actions">
+      <a th:href="@{/admin/approve/patient/{id}(id=${patient.id})}" class="btn btn-success" style="padding:7px 16px; font-size:12.5px;">
+        ✅ Approve
+      </a>
+      <a th:href="@{/admin/reject/patient/{id}(id=${patient.id})}" class="btn btn-danger" style="padding:7px 16px; font-size:12.5px;">
+        ❌ Reject
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+function animateCount(el,target){var step=Math.max(1,Math.ceil(target/36));var cur=0;el.textContent='0';var t=setInterval(function(){cur=Math.min(cur+step,target);el.textContent=cur;if(cur>=target)clearInterval(t);},16);}
+document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.stat-box h3,.stat-box-info h3,.stat-cell h3,.stat-mini h3,.white-stat-box h3').forEach(function(el){var n=parseInt(el.textContent.replace(/[^0-9]/g,''),10);if(!isNaN(n)&&n>0)animateCount(el,n);});});
+</script>
+</body>
+</html>

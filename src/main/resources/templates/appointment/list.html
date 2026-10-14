@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <title>Appointment Management</title>
+    <link rel="stylesheet" th:href="@{/style.css}"/>
+    <style>
+      body {
+        background:
+          linear-gradient(180deg, rgba(6, 10, 18, 0.68) 0%, rgba(6, 10, 18, 0.78) 100%),
+          url('https://images.unsplash.com/photo-1758092922270-05163495a197?q=80&w=1400&auto=format&fit=crop') center/cover fixed no-repeat !important;
+        min-height: 100vh;
+      }
+    </style>
+</head>
+<body>
+<div class="navbar">
+  <a class="logo" href="/home/admin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:24px; height:24px; color:#ef4444; flex-shrink:0;">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span>DocTime <span style="font-size:11px; color:#94a3b8; font-weight:500; margin-left:4px;">Admin Portal</span></span>
+  </a>
+  <nav>
+    <a href="/home/admin" class="home-link"><span>🏠</span> Home</a>
+    <a href="/patients"><span>👥</span> Patients</a>
+    <a href="/doctors"><span>🩺</span> Doctors</a>
+    <a href="/appointments" class="active"><span>📅</span> Appointments</a>
+    <a href="/scheduling"><span>⏱️</span> Scheduling</a>
+    <a href="/admin"><span>⚙️</span> Admin</a>
+    <a href="/admin/requests"><span>🔔</span> Requests</a>
+    <a href="/logout" class="logout-btn"><span>🚪</span> Logout</a>
+  </nav>
+  
+</div>
+
+
+
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <h1 style="color:#ffffff !important;">Appointment Management</h1>
+            <p>Manage and sort all patient appointments</p>
+        </div>
+        <a href="/appointments/add" class="btn btn-primary">+ Add Appointment</a>
+    </div>
+
+    <!-- SORT BUTTONS -->
+    <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="/appointments" class="btn btn-warning">
+            📋 Default View
+        </a>
+        <a href="/appointments/sort-by-priority" class="btn btn-primary">
+            🔺 Sort by Urgency (Priority Queue)
+        </a>
+        <a href="/appointments/sort-by-time" class="btn btn-success">
+            🕐 Sort by Time Slot (Bubble Sort)
+        </a>
+    </div>
+
+    <!-- SORT LABEL -->
+    <div style="margin-bottom: 15px;">
+        <span class="badge badge-blue" th:if="${sortType == 'default'}">
+            📋 Default View — All Appointments
+        </span>
+        <span class="badge badge-red" th:if="${sortType == 'priority'}">
+            🔺 Sorted by: Urgency (Priority Queue) — High urgency patients first!
+        </span>
+        <span class="badge badge-green" th:if="${sortType == 'time'}">
+            🕐 Sorted by: Time Slot (Bubble Sort) — Earliest appointments first!
+        </span>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date</th>
+                <th>Time Slot</th>
+                <th>Status</th>
+                <th>Urgency</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${appointments}">
+                <td><span class="badge badge-blue" th:text="${a.id}"></span></td>
+                <td th:text="${a.patientName}"></td>
+                <td th:text="${a.doctorName}"></td>
+                <td th:text="${a.date}"></td>
+                <td th:text="${a.timeSlot}"></td>
+                <td>
+                        <span class="badge"
+                              th:classappend="${a.status == 'Confirmed'} ? 'badge-green' : (${a.status == 'Pending'} ? 'badge-orange' : 'badge-red')"
+                              th:text="${a.status}"></span>
+                </td>
+                <td>
+                        <span class="badge"
+                              th:classappend="${a.urgency == 1} ? 'badge-red' : (${a.urgency == 2} ? 'badge-orange' : 'badge-green')"
+                              th:text="${a.urgency == 1} ? '🔴 High' : (${a.urgency == 2} ? '🟠 Medium' : '🟢 Low')"></span>
+                </td>
+                <td>
+                    <a th:href="@{/appointments/edit/{id}(id=${a.id})}"
+                       class="btn btn-warning" style="padding:6px 14px; font-size:12px;">Edit</a>
+                    <a th:href="@{/appointments/delete/{id}(id=${a.id})}"
+                       class="btn btn-danger" style="padding:6px 14px; font-size:12px;"
+                       onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(appointments)}">
+                <td colspan="8" style="text-align:center; color:#475569 !important; font-weight:600; padding:30px;">
+                    No appointments found
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+
+function animateCount(el, target) {
+  var step = Math.max(1, Math.ceil(target / 36));
+  var cur = 0;
+  el.textContent = '0';
+  var t = setInterval(function() {
+    cur = Math.min(cur + step, target);
+    el.textContent = cur;
+    if (cur >= target) clearInterval(t);
+  }, 16);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var selectors = ['.stat-box h3', '.stat-box-info h3', '.stat-cell h3', '.stat-mini h3', '.white-stat-box h3', '.stat-item h3', '.stat-card h3', '[style*="font-size:24px"]', '[style*="font-size:28px"]'];
+  document.querySelectorAll(selectors.join(',')).forEach(function(el) {
+    var n = parseInt(el.textContent.replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(n) && n > 0) animateCount(el, n);
+  });
+});
+</script>
+
+</body>
+</html>

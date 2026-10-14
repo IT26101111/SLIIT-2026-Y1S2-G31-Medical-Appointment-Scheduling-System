@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — DocTime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/style.css}"/>
+  <style>
+    :root {
+      --accent:      #ef4444;
+      --accent-glow: rgba(239,68,68,0.28);
+      --accent-soft: rgba(239,68,68,0.10);
+    }
+
+    /* Navbar styling */
+    .navbar {
+      background: rgba(6, 10, 18, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .navbar .logo {
+      color: #ef4444;
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+    }
+
+    .navbar .logo .logo-emoji {
+      font-size: 22px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 8px rgba(239,68,68,0.4));
+    }
+
+    .navbar nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .navbar nav a {
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .navbar nav a .nav-emoji {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .navbar nav a:hover {
+      color: #f1f5f9;
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-1px);
+    }
+
+    .navbar nav a.active {
+      color: #ef4444;
+      background: rgba(239,68,68,0.12);
+      font-weight: 600;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+
+    .navbar nav a.logout-btn {
+      color: #f87171;
+      background: rgba(239,68,68,0.10);
+      margin-left: 6px;
+    }
+
+    body {
+      background:
+        linear-gradient(180deg, rgba(6, 10, 18, 0.68) 0%, rgba(6, 10, 18, 0.78) 100%),
+        url('https://images.unsplash.com/photo-1758092922270-05163495a197?q=80&w=1400&auto=format&fit=crop') center/cover fixed no-repeat !important;
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    /* ── Hero strip ── */
+    .hero-strip {
+      background: linear-gradient(130deg, #120606 0%, #1a0808 45%, #0b0f1a 100%);
+      border: 1px solid rgba(239,68,68,0.22);
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    }
+
+    .hero-strip::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(239,68,68,0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-left h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #f8fafc;
+      line-height: 1.2;
+    }
+
+    .hero-left h1 em {
+      font-style: normal;
+      color: #ef4444;
+    }
+
+    .hero-left p {
+      color: #cbd5e1;
+      font-size: 13.5px;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+
+    .role-chip {
+      background: rgba(239,68,68,0.14);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: #fca5a5;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 12.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(239,68,68,0.18);
+    }
+
+    /* ── Pending alert bar ── */
+    .alert-bar {
+      background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.08));
+      border: 1px solid rgba(239,68,68,0.30);
+      border-radius: 12px;
+      padding: 13px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+      animation: pageEnter 0.35s ease both;
+    }
+
+    .alert-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fca5a5;
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+
+    .alert-bar-left .alert-emoji {
+      font-size: 18px;
+      display: inline-block;
+      animation: bellShake 2.5s ease infinite;
+    }
+
+    @keyframes bellShake {
+      0%,100%  { transform: rotate(0); }
+      8%       { transform: rotate(14deg); }
+      16%      { transform: rotate(-14deg); }
+      24%      { transform: rotate(8deg); }
+      32%      { transform: rotate(-6deg); }
+      40%      { transform: rotate(0); }
+    }
+
+    /* ── Overview stat row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .stat-box {
+      background: #ffffff !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      border-radius: 14px;
+      padding: 18px 20px;
+      transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+      cursor: default;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    }
+
+    .stat-box:hover {
+      border-color: rgba(239,68,68,0.50) !important;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+    }
+
+    .stat-box-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .stat-box-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .stat-box-icon.blue   { background: rgba(14, 165, 233, 0.14); border: 1px solid rgba(14, 165, 233, 0.28); }
+    .stat-box-icon.green  { background: rgba(34, 197, 94, 0.14);  border: 1px solid rgba(34, 197, 94, 0.28); }
+    .stat-box-icon.red    { background: rgba(239, 68, 68, 0.14);  border: 1px solid rgba(239, 68, 68, 0.28); }
+    .stat-box-icon.orange { background: rgba(249, 115, 22, 0.14); border: 1px solid rgba(249, 115, 22, 0.28); }
+
+    .stat-box h3 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #0f172a !important;
+      line-height: 1;
+    }
+
+    .stat-box p {
+      font-size: 11.5px;
+      color: #475569 !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    /* ── Dashboard grid ── */
+    .dash-section-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dash-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+    }
+
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .dash-grid { grid-template-columns: repeat(2,1fr); }
+      .stats-row { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 560px) {
+      .dash-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr; }
+    }
+
+    /* Action card button enhancements */
+    .action-card {
+      background: #ffffff !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      border-radius: 16px;
+      padding: 26px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    }
+
+    .action-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(239,68,68,0.55) !important;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.28), 0 0 0 1px rgba(239,68,68,0.25);
+    }
+
+    .action-card:active {
+      transform: translateY(-2px) scale(0.99);
+    }
+
+    .action-card .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      background: rgba(239,68,68,0.10);
+      border: 1px solid rgba(239,68,68,0.22);
+      font-size: 26px;
+      line-height: 1;
+      transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .action-card:hover .card-icon {
+      transform: scale(1.12);
+      background: rgba(239,68,68,0.18);
+      border-color: rgba(239,68,68,0.38);
+    }
+
+    .action-card h3 {
+      font-size: 15px;
+      color: #0f172a !important;
+      font-weight: 700;
+      margin-bottom: 5px;
+      letter-spacing: -0.02em;
+    }
+
+    .action-card p {
+      color: #475569 !important;
+      font-size: 12.5px;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    /* Pending badge */
+    .pending-overlay {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: #ef4444;
+      color: #fff;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      box-shadow: 0 2px 10px rgba(239,68,68,0.5);
+    }
+  
+    /* Full width enforcement */
+    html, body {
+      width: 100% !important;
+      min-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .main-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 1 1 100% !important;
+      box-sizing: border-box !important;
+    }
+    .hero-strip, .stats-row, .dash-grid, .quick-grid, .appt-card {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<div class="navbar">
+  <a class="logo" href="/home/admin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:26px; height:26px; color:#ef4444; flex-shrink:0;">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span>DocTime <span style="font-size:11px; color:#94a3b8; font-weight:500; margin-left:4px;">Admin Portal</span></span>
+  </a>
+  <nav>
+    <a href="/home/admin" class="active home-link">
+      <span class="nav-emoji">🏠</span> Home
+    </a>
+    <a href="/patients">
+      <span class="nav-emoji">👥</span> Patients
+    </a>
+    <a href="/doctors">
+      <span class="nav-emoji">🩺</span> Doctors
+    </a>
+    <a href="/appointments">
+      <span class="nav-emoji">📅</span> Appointments
+    </a>
+    <a href="/scheduling">
+      <span class="nav-emoji">⏱️</span> Scheduling
+    </a>
+    <a href="/admin">
+      <span class="nav-emoji">⚙️</span> Admin
+    </a>
+    <a href="/admin/requests">
+      <span class="nav-emoji">🔔</span> Requests
+      <span class="nav-badge" th:if="${pendingCount > 0}" th:text="${pendingCount}"></span>
+    </a>
+    <a href="/logout" class="logout-btn">
+      <span class="nav-emoji">🚪</span> Logout
+    </a>
+  </nav>
+  
+</div>
+
+
+
+<!-- ══ MAIN ══ -->
+<div class="main-content">
+
+  <!-- Pending alert -->
+  <div class="alert-bar" th:if="${pendingCount > 0}">
+    <div class="alert-bar-left">
+      <span class="alert-emoji">🔔</span>
+      <span><strong th:text="${pendingCount}"></strong> signup request(s) awaiting your review</span>
+    </div>
+    <a href="/admin/requests" class="btn btn-danger" style="padding:7px 16px; font-size:12.5px;">
+      Review Now →
+    </a>
+  </div>
+
+  <!-- Hero strip -->
+  <div class="hero-strip">
+    <div class="hero-left">
+      <h1>Welcome back, <em th:text="${userName}"></em></h1>
+      <p>Full system access · Administrator Portal · DocTime Management Console</p>
+    </div>
+    <div class="role-chip">
+      <span>⚙️</span> System Administrator
+    </div>
+  </div>
+
+
+
+  <!-- Module navigation -->
+  <div class="dash-section-title">Quick Access</div>
+
+  <div class="dash-grid">
+
+    <a href="/patients" class="action-card stagger-1">
+      <div class="card-icon">👥</div>
+      <h3>Patients</h3>
+      <p>View and manage all registered patients</p>
+    </a>
+
+    <a href="/doctors" class="action-card stagger-2">
+      <div class="card-icon">🩺</div>
+      <h3>Doctors</h3>
+      <p>Manage doctor profiles and specializations</p>
+    </a>
+
+    <a href="/appointments" class="action-card stagger-3">
+      <div class="card-icon">📅</div>
+      <h3>Appointments</h3>
+      <p>Monitor and manage all appointment records</p>
+    </a>
+
+    <a href="/scheduling" class="action-card stagger-4">
+      <div class="card-icon">⏱️</div>
+      <h3>Scheduling</h3>
+      <p>Priority queue and time-slot management</p>
+    </a>
+
+    <a href="/admin" class="action-card stagger-5">
+      <div class="card-icon">⚙️</div>
+      <h3>Admin Accounts</h3>
+      <p>Manage system administrator access levels</p>
+    </a>
+
+    <a href="/admin/requests" class="action-card stagger-6" style="position:relative;">
+      <span class="pending-overlay" th:if="${pendingCount > 0}" th:text="${pendingCount} + ' pending'"></span>
+      <div class="card-icon">🔔</div>
+      <h3>Signup Requests</h3>
+      <p>
+        <span th:if="${pendingCount > 0}" style="color:#f87171;font-weight:700;" th:text="${pendingCount} + ' awaiting approval'"></span>
+        <span th:if="${pendingCount == 0}" style="color:#22c55e;font-weight:600;">All clear — no pending requests</span>
+      </p>
+    </a>
+
+  </div>
+</div>
+
+</body>
+</html>
